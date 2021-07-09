@@ -33,12 +33,18 @@ def mlp(sizes, activation, output_activation=nn.Identity):
         (Use an nn.Sequential module.)
 
     """
-    #######################
-    #                     #
-    #   YOUR CODE HERE    #
-    #                     #
-    #######################
-    pass
+    layers = [nn.Linear(sizes[0], sizes[1])]
+
+    for i in range(1,len(sizes)-1):
+        layers.append(nn.Linear(sizes[i], sizes[i+1]))
+        layers.append(activation())
+
+    layers.append(nn.Linear(sizes[-2], sizes[-1]))
+    layers.append(output_activation())
+
+    return nn.Sequential(*layers)
+
+
 
 class DiagonalGaussianDistribution:
 
@@ -115,6 +121,10 @@ if __name__ == '__main__':
     import psutil
     import time
 
+
+    mlp = mlp([30,30,40,30], nn.ReLU)
+    print(mlp)
+    sys.exit()
     logdir = "/tmp/experiments/%i"%int(time.time())
 
     ActorCritic = partial(exercise1_2_auxiliary.ExerciseActorCritic, actor=MLPGaussianActor)
