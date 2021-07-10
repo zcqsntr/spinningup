@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 from spinup.exercises.pytorch.problem_set_1 import exercise1_1
 from spinup.exercises.pytorch.problem_set_1 import exercise1_2_auxiliary
-from ContinuousCartpole import *
+
 """
 
 Exercise 1.2: PPO Gaussian Policy
@@ -83,7 +83,8 @@ class MLPGaussianActor(nn.Module):
         (Make sure it's trainable!)
         """
 
-        self.log_std = nn.Parameter(torch.tensor([-0.5]*act_dim), requires_grad=True)
+        #self.log_std = nn.Parameter(torch.tensor([-0.5]*act_dim), requires_grad=True)
+        self.log_std = nn.Parameter(torch.tensor([2.] * act_dim), requires_grad=True)
 
         self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
 
