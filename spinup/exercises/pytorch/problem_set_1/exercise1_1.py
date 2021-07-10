@@ -30,7 +30,7 @@ def gaussian_likelihood(x, mu, log_std):
 
     single_probs = dist.log_prob(x)
 
-    return torch.sum(single_probs, dim = 1)
+    return torch.sum(single_probs, dim = -1)
 
 
 if __name__ == '__main__':

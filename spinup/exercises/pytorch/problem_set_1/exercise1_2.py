@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 from spinup.exercises.pytorch.problem_set_1 import exercise1_1
 from spinup.exercises.pytorch.problem_set_1 import exercise1_2_auxiliary
-
+from ContinuousCartpole import *
 """
 
 Exercise 1.2: PPO Gaussian Policy
@@ -33,9 +33,9 @@ def mlp(sizes, activation, output_activation=nn.Identity):
         (Use an nn.Sequential module.)
 
     """
-    layers = [nn.Linear(sizes[0], sizes[1])]
 
-    for i in range(1,len(sizes)-1):
+    layers = []
+    for i in range(0,len(sizes)-2):
         layers.append(nn.Linear(sizes[i], sizes[i+1]))
         layers.append(activation())
 
@@ -58,12 +58,8 @@ class DiagonalGaussianDistribution:
             A PyTorch Tensor of samples from the diagonal Gaussian distribution with
             mean and log_std given by self.mu and self.log_std.
         """
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        pass
+        sample = torch.normal(self.mu, torch.exp(self.log_std))
+        return sample
 
     #================================(Given, ignore)==========================================#
     def log_prob(self, value):
@@ -86,14 +82,14 @@ class MLPGaussianActor(nn.Module):
         independent of observations, initialized to [-0.5, -0.5, ..., -0.5].
         (Make sure it's trainable!)
         """
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        # self.log_std = 
-        # self.mu_net = 
-        pass 
+
+        self.log_std = nn.Parameter(torch.tensor([-0.5]*act_dim), requires_grad=True)
+
+        self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
+
+        print(self.mu_net)
+
+
 
     #================================(Given, ignore)==========================================#
     def forward(self, obs, act=None):
@@ -122,17 +118,22 @@ if __name__ == '__main__':
     import time
 
 
-    mlp = mlp([30,30,40,30], nn.ReLU)
-    print(mlp)
-    sys.exit()
+
     logdir = "/tmp/experiments/%i"%int(time.time())
 
     ActorCritic = partial(exercise1_2_auxiliary.ExerciseActorCritic, actor=MLPGaussianActor)
-    
-    ppo(env_fn = lambda : gym.make('InvertedPendulum-v2'),
+
+
+    env = 'InvertedPendulum-v2'
+    env = 'Pendulum-v0'
+
+
+    ppo(env_fn = lambda : gym.make(env),
         actor_critic=ActorCritic,
         ac_kwargs=dict(hidden_sizes=(64,)),
-        steps_per_epoch=4000, epochs=20, logger_kwargs=dict(output_dir=logdir))
+        steps_per_epoch=4000, epochs=2000, logger_kwargs=dict(output_dir=logdir))
+
+
 
     # Get scores from last five epochs to evaluate success.
     data = pd.read_table(os.path.join(logdir,'progress.txt'))
