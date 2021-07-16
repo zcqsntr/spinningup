@@ -209,8 +209,8 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
         #   YOUR CODE HERE    #
         #                     #
         #######################
-        # q1 = 
-        # q2 = 
+        q1 = ac.q1(o,a)
+        q2 = ac.q2(o,a)
 
         # Target policy smoothing
         #######################
@@ -219,12 +219,23 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
         #                     #
         #######################
 
+        next_as = ac.pi(o2)
+        noise = torch.clamp(torch.normal(0, target_noise, size = next_as.shape), -noise_clip, noise_clip)
+        next_as = torch.clamp(next_as + noise, -act_limit, act_limit)
+
         # Target Q-values
         #######################
         #                     #
         #   YOUR CODE HERE    #
         #                     #
         #######################
+        q1_targ = ac.q1(o2,next_as)
+        q2_targ = ac.q1(o2,next_as)
+
+        min_targ = torch.min(torch.cat((q1_targ.reshape(-1, 1), q2_targ.reshape(-1,1)), dim = 1), dim = 1).values
+
+
+        targ = r + gamma * (1-d)*min_targ
 
         # MSE loss against Bellman backup
         #######################
@@ -232,9 +243,11 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
         #   YOUR CODE HERE    #
         #                     #
         #######################
-        # loss_q1 = 
-        # loss_q2 = 
-        # loss_q = 
+        loss_q1 = torch.nn.functional.mse_loss(q1, q1_targ)
+        loss_q2 = torch.nn.functional.mse_loss(q2, q2_targ)
+
+
+        loss_q = loss_q1+loss_q2
 
         # Useful info for logging
         loss_info = dict(Q1Vals=q1.detach().numpy(),
@@ -244,12 +257,14 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
 
     # Set up function for computing TD3 pi loss
     def compute_loss_pi(data):
+        o, a, r, o2, d = data['obs'], data['act'], data['rew'], data['obs2'], data['done']
         #######################
         #                     #
         #   YOUR CODE HERE    #
         #                     #
         #######################
-        # loss_pi = 
+
+        loss_pi = -ac.q1(o, ac.pi(o)).mean()
         return loss_pi
 
     #=========================================================================#
