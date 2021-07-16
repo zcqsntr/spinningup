@@ -83,8 +83,8 @@ class MLPGaussianActor(nn.Module):
         (Make sure it's trainable!)
         """
 
-        #self.log_std = nn.Parameter(torch.tensor([-0.5]*act_dim), requires_grad=True)
-        self.log_std = nn.Parameter(torch.tensor([2.] * act_dim), requires_grad=True)
+        self.log_std = nn.Parameter(torch.tensor([-0.5]*act_dim), requires_grad=True)
+        #self.log_std = nn.Parameter(torch.tensor([2.] * act_dim), requires_grad=True)
 
         self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
 
@@ -126,13 +126,13 @@ if __name__ == '__main__':
 
 
     env = 'InvertedPendulum-v2'
-    env = 'Pendulum-v0'
+    #env = 'Pendulum-v0'
 
 
     ppo(env_fn = lambda : gym.make(env),
         actor_critic=ActorCritic,
         ac_kwargs=dict(hidden_sizes=(64,)),
-        steps_per_epoch=4000, epochs=2000, logger_kwargs=dict(output_dir=logdir))
+        steps_per_epoch=4000, epochs=20, logger_kwargs=dict(output_dir=logdir))
 
 
 
